@@ -2330,6 +2330,7 @@ module.exports = {
           },
           orderDetails: orderDetailsWithTotalPrice,
           totalProductQuantity: totalProductQuantity, // Thêm tổng số sản phẩm được mua
+          totalOrder: totalOrder,
           totalamountdiscount: discountedTotalOrderPrice,
           shippingPrice: shippingPrice,
           totalOrderPrice: discountedTotalOrderPrice + shippingPrice,
@@ -2364,8 +2365,7 @@ module.exports = {
     } catch (err) {
       return res.status(500).json({ code: 500, error: err.message }); // Đổi từ err sang err.message
     }
-  }
-,
+  },
 
   //Hiển thị tất cả thông tin product và tên categories
   grossprcate: async (req, res, next) => {

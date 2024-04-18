@@ -25,9 +25,11 @@ module.exports = {
         .string()
         .max(500, "Mô tả không được vượt quá 500 ký tự")
         .trim()
+        .required()
         .strict(),
       status: yup
         .string()
+        .required()
         .oneOf(["Đang trống", "Đã đặt"], "Trạng thái không hợp lệ")
         .default("empty"),
       isDelete: yup.boolean().required("Trường isDelete là bắt buộc"),

@@ -17,16 +17,18 @@ const tableSchema = new Schema(
     setup: {
       type: String,
       maxlength: [500, 'Mô tả không được vượt quá 500 ký tự'],
+      required: true,
     },
     status: {
       type: String,
       enum: ['Đang trống', 'Đã đặt'],
       default: 'Đang trống',
+      required: true,
     },
     isDelete: {
       type: Boolean,
       default: false,
-      required: [true, 'Trường isDelete là bắt buộc'],
+      required: true,
     },
   },
   {
