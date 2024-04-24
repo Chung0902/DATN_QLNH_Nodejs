@@ -5,13 +5,14 @@ const { validateSchema } = require('../../../utils');
 const {
   getDetailSchema,
   createSchema,
+  updateOrderSchema
 } = require('./validations');
 const {
   getAll,
   getDetail,
   create,
   remove,
-  update,
+  updateOrderDetails,
   updateIsDelete,
 } = require('./controller');
 
@@ -21,7 +22,7 @@ router.route('/')
 
 router.route('/:id')
   .get(validateSchema(getDetailSchema), getDetail)
-  .patch(validateSchema(createSchema), update)
+  .patch(validateSchema(updateOrderSchema), updateOrderDetails)
   .delete(validateSchema(getDetailSchema), remove)
 router.route('/delete').post(updateIsDelete) 
 module.exports = router;

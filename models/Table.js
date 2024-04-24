@@ -25,11 +25,11 @@ const tableSchema = new Schema(
       default: 'Đang trống',
       required: true,
     },
-    isDelete: {
-      type: Boolean,
-      default: false,
-      required: true,
-    },
+    // isDelete: {
+    //   type: Boolean,
+    //   default: false,
+    //   required: true,
+    // },
   },
   {
     versionKey: false,

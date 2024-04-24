@@ -28,7 +28,7 @@ const createTable = async (req, res, next) => {
     const data = req.body;
 
     // Kiểm tra xem dữ liệu gửi lên có chứa đủ các trường cần thiết không
-    const requiredFields = ['name', 'numberOfSeats','isDelete'];
+    const requiredFields = ['name', 'numberOfSeats'];
     for (const field of requiredFields) {
       if (!(field in data)) {
         return res.status(400).json({ code: 400, error: `${field} không được bỏ trống` });
@@ -41,9 +41,9 @@ const createTable = async (req, res, next) => {
     }
 
     // Kiểm tra xem trường isDelete có phải là boolean không
-    if (typeof data.isDelete !== 'boolean') {
-      return res.status(400).json({ code: 400, error: "Trường isDelete phải là một giá trị boolean" });
-    }
+    // if (typeof data.isDelete !== 'boolean') {
+    //   return res.status(400).json({ code: 400, error: "Trường isDelete phải là một giá trị boolean" });
+    // }
 
     // Tiến hành tạo bản ghi mới
     const newItem = new Table(data);

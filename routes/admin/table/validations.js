@@ -32,7 +32,7 @@ module.exports = {
         .required()
         .oneOf(["Đang trống", "Đã đặt"], "Trạng thái không hợp lệ")
         .default("empty"),
-      isDelete: yup.boolean().required("Trường isDelete là bắt buộc"),
+      // isDelete: yup.boolean().required("Trường isDelete là bắt buộc"),
     }),
   }),
 };

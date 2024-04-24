@@ -1,4 +1,4 @@
-const { Order, Customer, Employee, Product } = require('../../../models');
+const { Order, Customer, Employee, Product, Table } = require('../../../models');
 const { asyncForEach } = require('../../../utils');
 const mongoose = require("mongoose");
 const ObjectId = mongoose.Types.ObjectId;
@@ -7,12 +7,7 @@ module.exports = {
   getAll: async (req, res, next) => {
     try {
       let results = await Order.find();
-       // Thêm header Cache-Control vào phản hồi
-       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-
-      // Thêm header Cache-Control vào phản hồi
       res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-
       return res.send({ code: 200, payload: results });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
@@ -22,68 +17,57 @@ module.exports = {
   getDetail: async (req, res, next) => {
     try {
       const { id } = req.params;
-
       let found = await Order.findById(id);
-
       if (found) {
         return res.send({ code: 200, payload: found });
       }
-
-      return res.status(410).send({ code: 404, message: 'Không tìm thấy' });
+      return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
     } catch (err) {
-      res.status(404).json({
-        message: 'Get detail fail!!',
-        payload: err,
-      });
+      return res.status(500).json({ code: 500, error: err });
     }
   },
 
   create: async function (req, res, next) {
     try {
       const data = req.body;
+      const { customerId, employeeId, orderDetails, tablesId } = data;
 
-      const { customerId, employeeId, orderDetails } = data;
-
-      const getCustomer = Customer.findById(customerId);
-      const getEmployee = Employee.findById(employeeId);
-
-      const [customer, employee] = await Promise.all([
-        getCustomer,
-        getEmployee,
+      const [customer, employee, table] = await Promise.all([
+        Customer.findById(customerId),
+        Employee.findById(employeeId),
+        Table.findById(tablesId),
       ]);
 
       const errors = [];
       if (!customer || customer.isDelete)
-        errors.push('Khách hàng không tồn tại');
+        errors.push('Khách hàng không tồn tại hoặc đã bị xóa');
       if (!employee || employee.isDelete)
-        errors.push('Nhân viên không tồn tại');
+        errors.push('Nhân viên không tồn tại hoặc đã bị xóa');
+      if (!table || table.isDelete)
+        errors.push('Bàn ăn không tồn tại hoặc đã bị xóa');
 
       await asyncForEach(orderDetails, async (item) => {
         const product = await Product.findById(item.productId);
-
         if (!product)
           errors.push(`Sản phẩm ${item.productId} không có trong hệ thống`);
       });
 
       if (errors.length > 0) {
-        return res.status(404).json({
-          code: 404,
+        return res.status(400).json({
+          code: 400,
           message: 'Lỗi',
           errors,
         });
       }
 
       const newItem = new Order(data);
-
       let result = await newItem.save();
-
       return res.send({
         code: 200,
-        message: 'Tạo thành công',
+        message: 'Tạo đơn hàng thành công',
         payload: result,
       });
     } catch (err) {
-      console.log('««««« err »»»»»', err);
       return res.status(500).json({ code: 500, error: err });
     }
   },
@@ -91,18 +75,15 @@ module.exports = {
   remove: async function (req, res, next) {
     try {
       const { id } = req.params;
-
       let found = await Order.findByIdAndDelete(id);
-
       if (found) {
         return res.send({
           code: 200,
           payload: found,
-          message: 'Xóa thành công',
+          message: 'Xóa đơn hàng thành công',
         });
       }
-
-      return res.status(410).send({ code: 404, message: 'Không tìm thấy' });
+      return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
@@ -112,67 +93,193 @@ module.exports = {
     try {
       const { id } = req.params;
       const updateData = req.body;
-
-      const { customerId, employeeId} = updateData;
-
-      const getCustomer = Customer.findById(customerId);
-      const getEmployee = Employee.findById(employeeId);
-
-      const [customer, employee] = await Promise.all([
-        getCustomer,
-        getEmployee,
+      const { customerId, employeeId, tableId, newOrderDetails } = updateData;
+  
+      const [customer, employee, table] = await Promise.all([
+        Customer.findById(customerId),
+        Employee.findById(employeeId),
+        Table.findById(tableId),
       ]);
-
+  
       const errors = [];
       if (!customer || customer.isDelete)
-        errors.push('Khách hàng không tồn tại');
+        errors.push('Khách hàng không tồn tại hoặc đã bị xóa');
       if (!employee || employee.isDelete)
-        errors.push('Nhân viên không tồn tại');
-
-      // await asyncForEach(orderDetails, async (item) => {
-      //   const product = await Product.findById(item.productId);
-
-      //   if (!product)
-      //     errors.push(`Sản phẩm ${item.productId} không có trong hệ thống`);
-      // });
-
+        errors.push('Nhân viên không tồn tại hoặc đã bị xóa');
+      if (!table || table.isDelete)
+        errors.push('Bàn ăn không tồn tại hoặc đã bị xóa');
+  
       if (errors.length > 0) {
-        return res.status(404).json({
-          code: 404,
+        return res.status(400).json({
+          code: 400,
           message: 'Lỗi',
           errors,
         });
       }
-
-      const found = await Order.findByIdAndUpdate(id, updateData, {
-        new: true,
-      });
-
+  
+      const found = await Order.findByIdAndUpdate(id, {
+        customerId,
+        employeeId,
+        tableId,
+        $push: { orderDetails: { $each: newOrderDetails } }, // Thêm món ăn mới vào orderDetails
+      }, { new: true });
+  
       if (found) {
         return res.send({
           code: 200,
-          message: 'Cập nhật thành công',
+          message: 'Cập nhật đơn hàng thành công',
           payload: found,
         });
       }
-
+  
       return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
     } catch (error) {
       return res.status(500).json({ code: 500, error: error });
     }
   },
+  
+//   updateOrderDetails: async function (req, res, next) {
+//     try {
+//         const { id } = req.params;
+//         const updateData = req.body;
+//         const { orderDetails } = updateData;
+        
+//         // Kiểm tra xem orderDetails có tồn tại và không rỗng không
+//         if (!orderDetails || !Array.isArray(orderDetails) || orderDetails.length === 0) {
+//             return res.status(400).json({
+//                 code: 400,
+//                 message: "Vui lòng cung cấp thông tin chi tiết đơn hàng"
+//             });
+//         }
+        
+//         // Kiểm tra tính hợp lệ của mỗi sản phẩm trong orderDetails
+//         for (const item of orderDetails) {
+//             const { productId, quantity, price } = item;
+            
+//             // Kiểm tra xem productId, quantity và price có tồn tại không
+//             if (!productId || !quantity || !price) {
+//                 return res.status(400).json({
+//                     code: 400,
+//                     message: "Vui lòng cung cấp đầy đủ thông tin (productId, quantity, price) cho mỗi sản phẩm"
+//                 });
+//             }
+            
+//             // Kiểm tra xem sản phẩm có tồn tại trong hệ thống không
+//             const product = await Product.findById(productId);
+//             if (!product) {
+//                 return res.status(400).json({
+//                     code: 400,
+//                     message: `Sản phẩm ${productId} không có trong hệ thống`
+//                 });
+//             }
+//         }
+        
+//         // Tạo một mảng mới chứa các đối tượng OrderDetail từ orderDetails
+//         const newOrderDetails = orderDetails.map(item => ({
+//             productId: item.productId,
+//             quantity: item.quantity,
+//             price: item.price
+//         }));
+        
+//         // Tìm đơn hàng và cập nhật thông tin chi tiết đơn hàng
+//         const found = await Order.findByIdAndUpdate(id, {
+//             $set: { 
+//                 orderDetails: newOrderDetails
+//             }
+//         }, { new: true });
+        
+//         if (found) {
+//             return res.send({
+//                 code: 200,
+//                 message: 'Cập nhật thông tin chi tiết đơn hàng thành công',
+//                 payload: found,
+//             });
+//         }
+        
+//         return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
+//     } catch (error) {
+//         return res.status(500).json({ code: 500, error: error });
+//     }
+// },
+
+updateOrderDetails: async function (req, res, next) {
+  try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const { orderDetails } = updateData;
+      
+      // Kiểm tra xem orderDetails có tồn tại và không rỗng không
+      if (!orderDetails || !Array.isArray(orderDetails) || orderDetails.length === 0) {
+          return res.status(400).json({
+              code: 400,
+              message: "Vui lòng cung cấp thông tin chi tiết đơn hàng"
+          });
+      }
+      
+      // Kiểm tra tính hợp lệ của mỗi sản phẩm trong orderDetails
+      for (const item of orderDetails) {
+          const { productId, quantity, price } = item;
+          
+          // Kiểm tra xem productId, quantity và price có tồn tại không
+          if (!productId || !quantity || !price) {
+              return res.status(400).json({
+                  code: 400,
+                  message: "Vui lòng cung cấp đầy đủ thông tin (productId, quantity, price) cho mỗi sản phẩm"
+              });
+          }
+          
+          // Kiểm tra xem sản phẩm có tồn tại trong hệ thống không
+          const product = await Product.findById(productId);
+          if (!product) {
+              return res.status(400).json({
+                  code: 400,
+                  message: `Sản phẩm ${productId} không có trong hệ thống`
+              });
+          }
+      }
+      
+      // Tạo một mảng mới chứa các đối tượng OrderDetail từ orderDetails
+      const newOrderDetails = orderDetails.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price
+      }));
+      
+      // Tìm đơn hàng và thêm các sản phẩm mới vào chi tiết đơn hàng
+      const found = await Order.findByIdAndUpdate(id, {
+          $addToSet: { 
+              orderDetails: { $each: newOrderDetails }
+          }
+      }, { new: true });
+      
+      if (found) {
+          return res.send({
+              code: 200,
+              message: 'Thêm sản phẩm vào chi tiết đơn hàng thành công',
+              payload: found,
+          });
+      }
+      
+      return res.status(404).send({ code: 404, message: 'Không tìm thấy' });
+  } catch (error) {
+      return res.status(500).json({ code: 500, error: error });
+  }
+},
+
+
+
+
+
   updateIsDelete: async function (req, res, next) {
-    const { selectedIds } = req.body; // Lấy danh sách các ID từ yêu cầu
-
-      try {
-        // Thực hiện cập nhật cho từng ID trong danh sách
-        const result = await Order.updateMany(
-          { _id: { $in: selectedIds } }, // Tìm các nhân viên có ID trong danh sách
-          { $set: { isDelete: true } } // Cập nhật trường isDelete thành true
-        );
-
-        res.status(200).json({ message: 'Cập nhật thành công',success: true, payload: result });
-      } catch (error) {
-        res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình cập nhật' });
-   }}
+    const { selectedIds } = req.body;
+    try {
+      const result = await Order.updateMany(
+        { _id: { $in: selectedIds } },
+        { $set: { isDelete: true } }
+      );
+      res.status(200).json({ message: 'Cập nhật thành công', success: true, payload: result });
+    } catch (error) {
+      res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình cập nhật' });
+    }
+  }
 };
