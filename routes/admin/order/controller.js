@@ -202,6 +202,8 @@ module.exports = {
 //     }
 // },
 
+
+//Thêm mới products trong orderdetail 
 updateOrderDetails: async function (req, res, next) {
   try {
       const { id } = req.params;
@@ -266,8 +268,38 @@ updateOrderDetails: async function (req, res, next) {
   }
 },
 
+//Xóa product trong orderdetail
+deleteOrderDetails: async function (req, res, next) {
+  try {
+    const { id } = req.params;
+    const { productId } = req.body;
 
+    // Kiểm tra xem productId có tồn tại không
+    if (!productId) {
+      return res.status(400).json({
+        code: 400,
+        message: "Vui lòng cung cấp ID của sản phẩm cần xóa"
+      });
+    }
 
+    // Xóa các order detail có productId trùng khớp với productId từ đơn hàng
+    const updatedOrder = await Order.findByIdAndUpdate(id, {
+      $pull: { orderDetails: { productId: productId } }
+    }, { new: true });
+
+    if (updatedOrder) {
+      return res.status(200).json({
+        code: 200,
+        message: "Xóa sản phẩm khỏi chi tiết đơn hàng thành công",
+        payload: updatedOrder
+      });
+    }
+
+    return res.status(404).json({ code: 404, message: "Không tìm thấy đơn hàng" });
+  } catch (error) {
+    return res.status(500).json({ code: 500, error: error });
+  }
+},
 
 
   updateIsDelete: async function (req, res, next) {

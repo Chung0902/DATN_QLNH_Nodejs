@@ -14,6 +14,7 @@ const {
   remove,
   updateOrderDetails,
   updateIsDelete,
+  deleteOrderDetails,
 } = require('./controller');
 
 router.route('/')
@@ -23,6 +24,6 @@ router.route('/')
 router.route('/:id')
   .get(validateSchema(getDetailSchema), getDetail)
   .patch(validateSchema(updateOrderSchema), updateOrderDetails)
-  .delete(validateSchema(getDetailSchema), remove)
+  .delete(validateSchema(getDetailSchema), deleteOrderDetails)
 router.route('/delete').post(updateIsDelete) 
 module.exports = router;
