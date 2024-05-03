@@ -425,6 +425,23 @@ updateOrderStatus: async (req, res, next) => {
       // Lấy trạng thái đơn hàng mới từ body của request
       const newOrderStatus = req.body.status;
 
+      // Lấy trạng thái hiện tại của đơn hàng
+      const currentOrder = await Order.findById(orderId);
+      if (!currentOrder) {
+          return res.status(404).json({ message: `Không tìm thấy đơn hàng với ID ${orderId}` });
+      }
+
+      // Chỉ cho phép cập nhật từ trạng thái 'WAITING' sang 'CANCELED'
+      if (currentOrder.status !== 'WAITING' && newOrderStatus === 'CANCELED') {
+          return res.status(400).json({ message: 'Chỉ có thể hủy đơn hàng ở trạng thái WAITING.' });
+      }
+
+      // Ngăn chặn việc cập nhật từ trạng thái 'CANCELED' qua các trạng thái khác
+      if (currentOrder.status === 'CANCELED' && newOrderStatus !== 'CANCELED') {
+        return res.status(400).json({ message: 'Không thể chuyển đơn hàng đã hủy sang trạng thái khác.' });
+      }
+
+
       // Cập nhật trạng thái của đơn hàng
       const updatedOrder = await Order.findByIdAndUpdate(
           orderId,
