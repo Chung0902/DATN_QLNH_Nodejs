@@ -345,71 +345,151 @@ module.exports = {
   },
 
   //Cập nhật trạng thái đơn hàng 
-  updateOrderStatus: async (req, res, next) => {
-    try {
-        // Lấy orderId từ các tham số URL
-        const orderId = req.params.id;
+//   updateOrderStatus: async (req, res, next) => {
+//     try {
+//         // Lấy orderId từ các tham số URL
+//         const orderId = req.params.id;
 
-        // Kiểm tra xem orderId có tồn tại không
-        if (!orderId) {
-            return res.status(400).json({ message: 'Vui lòng cung cấp ID của đơn hàng.' });
-        }
+//         // Kiểm tra xem orderId có tồn tại không
+//         if (!orderId) {
+//             return res.status(400).json({ message: 'Vui lòng cung cấp ID của đơn hàng.' });
+//         }
 
-        // Lấy trạng thái đơn hàng mới từ body của request
-        const newOrderStatus = req.body.status;
+//         // Lấy trạng thái đơn hàng mới từ body của request
+//         const newOrderStatus = req.body.status;
 
-        // Cập nhật trạng thái của đơn hàng
-        const updatedOrder = await Order.findByIdAndUpdate(
-            orderId,
-            { status: newOrderStatus },
-            { new: true }
-        );
+//         // Cập nhật trạng thái của đơn hàng
+//         const updatedOrder = await Order.findByIdAndUpdate(
+//             orderId,
+//             { status: newOrderStatus },
+//             { new: true }
+//         );
 
-        if (!updatedOrder) {
-            return res.status(404).json({ message: `Không tìm thấy đơn hàng với ID ${orderId}` });
-        }
+//         if (!updatedOrder) {
+//             return res.status(404).json({ message: `Không tìm thấy đơn hàng với ID ${orderId}` });
+//         }
 
-        // Xác định trạng thái và setup mới cho bàn dựa trên trạng thái của đơn hàng
-        let newTableStatus;
-        let newTableSetup;
+//         // Xác định trạng thái và setup mới cho bàn dựa trên trạng thái của đơn hàng
+//         let newTableStatus;
+//         let newTableSetup;
 
-        switch (newOrderStatus) {
-            case 'WAITING':
-                newTableStatus = 'Đã đặt';
-                newTableSetup = 'Không có sẵn';
-                break;
-            case 'DELIVERING':
-                newTableStatus = 'Đã đặt';
-                newTableSetup = 'Có sẵn';
-                break;
-            case 'COMPLETED':
-            case 'CANCELED':
-                newTableStatus = 'Đang trống';
-                newTableSetup = 'Không có sẵn';
-                break;
-            default:
-                console.log('Trạng thái đơn hàng không hợp lệ.');
-                return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ' });
-        }
+//         switch (newOrderStatus) {
+//             case 'WAITING':
+//                 newTableStatus = 'Đã đặt';
+//                 newTableSetup = 'Không có sẵn';
+//                 break;
+//             case 'DELIVERING':
+//                 newTableStatus = 'Đã đặt';
+//                 newTableSetup = 'Có sẵn';
+//                 break;
+//             case 'COMPLETED':
+//             case 'CANCELED':
+//                 newTableStatus = 'Đang trống';
+//                 newTableSetup = 'Không có sẵn';
+//                 break;
+//             default:
+//                 console.log('Trạng thái đơn hàng không hợp lệ.');
+//                 return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ' });
+//         }
 
-        // Cập nhật trạng thái và setup của bàn dựa trên tableId trong đơn hàng
-        const updatedTable = await Table.findOneAndUpdate(
-            { _id: updatedOrder.tableId },
-            { status: newTableStatus, setup: newTableSetup },
-            { new: true }
-        );
+//         // Cập nhật trạng thái và setup của bàn dựa trên tableId trong đơn hàng
+//         const updatedTable = await Table.findOneAndUpdate(
+//             { _id: updatedOrder.tableId },
+//             { status: newTableStatus, setup: newTableSetup },
+//             { new: true }
+//         );
 
-        if (!updatedTable) {
-            return res.status(404).json({ message: `Không tìm thấy bàn với ID: ${updatedOrder.tableId}` });
-        }
+//         if (!updatedTable) {
+//             return res.status(404).json({ message: `Không tìm thấy bàn với ID: ${updatedOrder.tableId}` });
+//         }
 
-        // Trả về phản hồi thành công
-        return res.status(200).json({ message: `Cập nhật trạng thái của bàn ${updatedTable.name} thành công.` });
+//         // Trả về phản hồi thành công
+//         return res.status(200).json({ message: `Cập nhật trạng thái của bàn ${updatedTable.name} thành công.` });
 
-    } catch (error) {
-        // Ghi log và trả về phản hồi lỗi
-        return res.status(500).json({ error: `Lỗi khi cập nhật trạng thái của bàn: ${error}` });
-    }
+//     } catch (error) {
+//         // Ghi log và trả về phản hồi lỗi
+//         return res.status(500).json({ error: `Lỗi khi cập nhật trạng thái của bàn: ${error}` });
+//     }
+// },
+
+updateOrderStatus: async (req, res, next) => {
+  try {
+      // Lấy orderId từ các tham số URL
+      const orderId = req.params.id;
+
+      // Kiểm tra xem orderId có tồn tại không
+      if (!orderId) {
+          return res.status(400).json({ message: 'Vui lòng cung cấp ID của đơn hàng.' });
+      }
+
+      // Lấy trạng thái đơn hàng mới từ body của request
+      const newOrderStatus = req.body.status;
+
+      // Cập nhật trạng thái của đơn hàng
+      const updatedOrder = await Order.findByIdAndUpdate(
+          orderId,
+          { status: newOrderStatus },
+          { new: true }
+      );
+
+      if (!updatedOrder) {
+          return res.status(404).json({ message: `Không tìm thấy đơn hàng với ID ${orderId}` });
+      }
+
+      // Kiểm tra xem trạng thái mới có phải là 'CANCELED' hay không
+      if (newOrderStatus === 'CANCELED') {
+          // Duyệt qua từng chi tiết đơn hàng và cộng lại số lượng vào kho
+          await asyncForEach(updatedOrder.orderDetails, async (item) => {
+              const product = await Product.findById(item.productId);
+              if (product) {
+                  // Cộng lại số lượng vào kho
+                  product.stock += item.quantity;
+                  await product.save();
+              }
+          });
+      }
+
+      // Xác định trạng thái và setup mới cho bàn dựa trên trạng thái của đơn hàng
+      let newTableStatus;
+      let newTableSetup;
+
+      switch (newOrderStatus) {
+          case 'WAITING':
+              newTableStatus = 'Đã đặt';
+              newTableSetup = 'Không có sẵn';
+              break;
+          case 'DELIVERING':
+              newTableStatus = 'Đã đặt';
+              newTableSetup = 'Có sẵn';
+              break;
+          case 'COMPLETED':
+          case 'CANCELED':
+              newTableStatus = 'Đang trống';
+              newTableSetup = 'Không có sẵn';
+              break;
+          default:
+              console.log('Trạng thái đơn hàng không hợp lệ.');
+              return res.status(400).json({ message: 'Trạng thái đơn hàng không hợp lệ' });
+      }
+
+      // Cập nhật trạng thái và setup của bàn dựa trên tableId trong đơn hàng
+      const updatedTable = await Table.findOneAndUpdate(
+          { _id: updatedOrder.tableId },
+          { status: newTableStatus, setup: newTableSetup },
+          { new: true }
+      );
+
+      if (!updatedTable) {
+          return res.status(404).json({ message: `Không tìm thấy bàn với ID: ${updatedOrder.tableId}` });
+      }
+
+      // Trả về phản hồi thành công
+      return res.status(200).json({ message: `Cập nhật trạng thái của bàn ${updatedTable.name} thành công.` });
+
+  } catch (error) {
+      // Ghi log và trả về phản hồi lỗi
+      return res.status(500).json({ error: `Lỗi khi cập nhật trạng thái của bàn: ${error}` });
+  }
 },
 
   updateIsDelete: async function (req, res, next) {
