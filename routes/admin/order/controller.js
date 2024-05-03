@@ -6,8 +6,7 @@ const {
   Table,
 } = require("../../../models");
 const { asyncForEach } = require("../../../utils");
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
+
 
 module.exports = {
   getAll: async (req, res, next) => {
@@ -35,38 +34,49 @@ module.exports = {
 
   create: async function (req, res, next) {
     try {
-      const data = req.body;
-      const { customerId, employeeId, orderDetails, tablesId } = data;
+        const data = req.body;
+        const { customerId, employeeId, orderDetails, tableId } = data;
 
-      const [customer, employee, table] = await Promise.all([
-        Customer.findById(customerId),
-        Employee.findById(employeeId),
-        Table.findById(tablesId),
-      ]);
+        const [customer, employee, table] = await Promise.all([
+            Customer.findById(customerId),
+            Employee.findById(employeeId),
+            Table.findById(tableId),
+        ]);
 
-      const errors = [];
-      if (!customer || customer.isDelete)
-        errors.push("Khách hàng không tồn tại hoặc đã bị xóa");
-      if (!employee || employee.isDelete)
-        errors.push("Nhân viên không tồn tại hoặc đã bị xóa");
-      if (!table || table.isDelete)
-        errors.push("Bàn ăn không tồn tại hoặc đã bị xóa");
+        const errors = [];
+        if (!customer || customer.isDelete)
+            errors.push("Khách hàng không tồn tại hoặc đã bị xóa");
+        if (!employee || employee.isDelete)
+            errors.push("Nhân viên không tồn tại hoặc đã bị xóa");
 
-      await asyncForEach(orderDetails, async (item) => {
-        const product = await Product.findById(item.productId);
-        if (!product)
-          errors.push(`Sản phẩm ${item.productId} không có trong hệ thống`);
-      });
-
-      if (errors.length > 0) {
-        return res.status(400).json({
-          code: 400,
-          message: "Lỗi",
-          errors,
+        await asyncForEach(orderDetails, async (item) => {
+            const product = await Product.findById(item.productId);
+            if (!product)
+                errors.push(`Sản phẩm ${item.productId} không có trong hệ thống`);
         });
-      }
 
-      const newItem = new Order(data);
+        if (errors.length > 0) {
+            return res.status(400).json({
+                code: 400,
+                message: "Lỗi",
+                errors,
+            });
+        }
+
+        // Kiểm tra xem đối tượng Table có tồn tại hay không
+        if (!table) {
+            return res.status(404).json({
+                code: 404,
+                message: "Bàn không tồn tại",
+            });
+        }
+
+        // Cập nhật trạng thái và setup của table
+        table.status = 'Đã đặt';
+        table.setup = 'Không có sẵn';
+        await table.save();
+
+        const newItem = new Order(data);
       let result = await newItem.save();
       return res.send({
         code: 200,
@@ -76,7 +86,8 @@ module.exports = {
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
-  },
+},
+
 
   remove: async function (req, res, next) {
     try {

@@ -137,21 +137,6 @@ module.exports = {
     }
   },
    updateIsDelete: async function (req, res, next) {
-    // try {
-    //    const product = await Product.findById(req.params.id);
-    //    if (!product) {
-    //      return res.status(404).json({ message: 'Product not found' });
-    //    }
-  
-    //    product.isDelete = true; // Cập nhật trường isDelete thành true
-  
-    //    await product.save(); // Lưu thay đổi vào database
-  
-    //   return res.status(200).send({code: 200,success:true,payload:product}); // Trả về sản phẩm đã được cập nhật
-    //  } catch (error) {
-    //    console.error(error);
-    //    return res.status(500).json({ message: 'Server error' });
-    //  
     const { selectedIds } = req.body; // Lấy danh sách các ID từ yêu cầu
 
       try {

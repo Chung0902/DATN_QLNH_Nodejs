@@ -16,10 +16,10 @@ module.exports = {
 
       shippedDate: yup
         .date()
-        .test('check date', '${path} ngày tháng không hợp lệ', (value) => {
+        .test('check date', '${path} ngày tháng không hợp lệ', function(value) {
           if (!value) return true;
 
-          if (value && this.createdDate && value < this.createdDate) {
+          if (value && this.parent.createdDate && value < this.parent.createdDate) {
             return false;
           }
 
@@ -31,36 +31,37 @@ module.exports = {
         }),
 
       paymentType: yup.string()
-        // .required()
+        .default('CASH')
         .oneOf(['CASH', 'CREDIT CARD'], 'Phương thức thanh toán không hợp lệ'),
 
       status: yup.string()
-        // .required()
-        .oneOf(['WAITING', 'COMPLETED', 'CANCELED','DELIVERING'], 'Trạng thái không hợp lệ'),
+        .default('WAITING')
+        .oneOf(['WAITING', 'COMPLETED', 'CANCELED', 'DELIVERING'], 'Trạng thái không hợp lệ'),
 
       customerId: yup
         .string()
-        .test('validationCustomerID', 'ID sai định dạng', (value) => {
+        .test('validationCustomerID', 'ID khách hàng sai định dạng', (value) => {
           return ObjectId.isValid(value);
         }),
 
       employeeId: yup
         .string()
-        .test('validationEmployeeID', 'ID sai định dạng', (value) => {
+        .test('validationEmployeeID', 'ID nhân viên sai định dạng', (value) => {
           return ObjectId.isValid(value);
         }),
 
+
       tableId: yup
-      .string()
-      .test('validationEmployeeID', 'ID sai định dạng', (value) => {
-        return ObjectId.isValid(value);
-      }),
+        .string()
+        .test('validationTableID', 'ID bàn sai định dạng', (value) => {
+          return ObjectId.isValid(value);
+        }),
 
       orderDetails: yup.array().of(
         yup.object().shape({
           productId: yup
             .string()
-            .test('validationProductID', 'ID sai định dạng', (value) => {
+            .test('validationProductID', 'ID sản phẩm sai định dạng', (value) => {
               return ObjectId.isValid(value);
             }),
 
@@ -68,7 +69,7 @@ module.exports = {
 
           price: yup.number().required().min(0),
 
-          discount: yup.number().required().min(0),
+          discount: yup.number().min(0),
         }),
       ),
     }),
@@ -82,7 +83,7 @@ module.exports = {
           yup.object().shape({
             productId: yup
               .string()
-              .test('validationProductID', 'ID sai định dạng', (value) => {
+              .test('validationProductID', 'ID sản phẩm sai định dạng', (value) => {
                 return ObjectId.isValid(value);
               }),
   
@@ -97,5 +98,4 @@ module.exports = {
         .min(1),
     }),
   }),
-
 };

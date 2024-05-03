@@ -4,8 +4,8 @@ const { Schema, model } = mongoose;
 const orderDetailSchema = new Schema(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    quantity: { type: Number, require: true, min: 0 },
-    price: { type: Number, required: true, min: 0, default: 0 },
+    quantity: { type: Number, require: false, min: 0 },
+    price: { type: Number, required: false, min: 0, default: 0 },
   },
   {
     versionKey: false,
@@ -69,7 +69,7 @@ const orderSchema = new Schema(
     },
     shippingAddress: {
       type: String,
-      require: [true, "Vui lòng nhập địa chỉ"],
+      // require: [true, "Vui lòng nhập địa chỉ"],
       maxLength: [500, "Địa chỉ không được vượt quá 500 ký tự"],
     },
     discount: { type: Number, default: 0 },
@@ -101,6 +101,13 @@ orderSchema.virtual('customer', {
 orderSchema.virtual('employee', {
   ref: 'Employee',
   localField: 'employeeId',
+  foreignField: '_id',
+  justOne: true,
+});
+
+orderSchema.virtual('table', {
+  ref: 'Table',
+  localField: 'tableId',
   foreignField: '_id',
   justOne: true,
 });
