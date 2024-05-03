@@ -53,6 +53,15 @@ module.exports = {
             const product = await Product.findById(item.productId);
             if (!product)
                 errors.push(`Sản phẩm ${item.productId} không có trong hệ thống`);
+            else {
+                if (item.quantity > product.stock) { // Kiểm tra số lượng tồn kho đủ để mua không
+                    errors.push(`Không đủ hàng cho sản phẩm ${product.name}`);
+                } else {
+                    // Trừ số lượng sản phẩm từ kho
+                    product.stock -= item.quantity;
+                    await product.save();
+                }
+            }
         });
 
         if (errors.length > 0) {
@@ -77,17 +86,16 @@ module.exports = {
         await table.save();
 
         const newItem = new Order(data);
-      let result = await newItem.save();
-      return res.send({
-        code: 200,
-        message: "Tạo đơn hàng thành công",
-        payload: result,
-      });
+        let result = await newItem.save();
+        return res.send({
+            code: 200,
+            message: "Tạo đơn hàng thành công",
+            payload: result,
+        });
     } catch (err) {
-      return res.status(500).json({ code: 500, error: err });
+        return res.status(500).json({ code: 500, error: err });
     }
 },
-
 
   remove: async function (req, res, next) {
     try {
