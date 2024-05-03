@@ -431,6 +431,11 @@ updateOrderStatus: async (req, res, next) => {
           return res.status(404).json({ message: `Không tìm thấy đơn hàng với ID ${orderId}` });
       }
 
+      // Kiểm tra xem trạng thái của đơn hàng có phải là 'CANCELED' không
+      if (currentOrder.status === 'CANCELED') {
+        return res.status(400).json({ message: 'Không thể thêm sản phẩm vào đơn hàng đã hủy.' });
+      }
+
       // Chỉ cho phép cập nhật từ trạng thái 'WAITING' sang 'CANCELED'
       if (currentOrder.status !== 'WAITING' && newOrderStatus === 'CANCELED') {
           return res.status(400).json({ message: 'Chỉ có thể hủy đơn hàng ở trạng thái WAITING.' });
