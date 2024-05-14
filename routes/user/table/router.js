@@ -1,11 +1,7 @@
 const express = require('express');
 const router = express.Router();
-
 const { validateSchema } = require('../../../utils');
-const {
-  getTableSchema,
-  tableSchema,
-} = require('./validations');
+const { getTableSchema, tableSchema } = require('./validations');
 const {
   getTableAll,
   getTableDetail,
@@ -16,11 +12,11 @@ const {
 
 router.route('/')
   .get(getTableAll)
-  .post(validateSchema(getTableDetail), createTable)
+  .post(validateSchema(tableSchema), createTable);
 
 router.route('/:id')
   .get(validateSchema(getTableSchema), getTableDetail)
   .patch(validateSchema(tableSchema), updateTable)
-  .delete(validateSchema(getTableSchema), deleteTable)
+  .delete(validateSchema(getTableSchema), deleteTable);
 
 module.exports = router;

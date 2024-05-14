@@ -206,6 +206,9 @@ module.exports = {
     }
   },
 
+  
+  
+
   remove: async function (req, res, next) {
     try {
       const { customerId,productId } = req.body;

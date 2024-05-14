@@ -343,8 +343,6 @@ module.exports = {
       return res.status(500).json({ code: 500, error: error });
     }
   },
-
-  //Cập nhật trạng thái đơn hàng 
 //   updateOrderStatus: async (req, res, next) => {
 //     try {
 //         // Lấy orderId từ các tham số URL

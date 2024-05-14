@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
 
+const DEFAULT_EMPLOYEE_ID = '647efdae66502ca93f65d13d';
+
 const orderDetailSchema = new Schema(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -74,8 +76,8 @@ const orderSchema = new Schema(
     },
     discount: { type: Number, default: 0 },
     customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true },
-    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee' },
-    tableId: { type: Schema.Types.ObjectId, ref: 'Table', required: true },
+    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee', default: DEFAULT_EMPLOYEE_ID },
+    tableId: { type: Schema.Types.ObjectId, ref: 'Table'},
 
     // Array
     orderDetails: [orderDetailSchema],
