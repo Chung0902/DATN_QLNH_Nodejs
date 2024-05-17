@@ -25,6 +25,10 @@ const tableSchema = new Schema(
       default: 'Đang trống',
       required: true,
     },
+    photo: {
+      type: String,
+      require: true,
+    },
     // isDelete: {
     //   type: Boolean,
     //   default: false,
