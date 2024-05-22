@@ -469,6 +469,19 @@ updateOrderStatus: async (req, res, next) => {
           });
       }
 
+      // Trừ số lượng sản phẩm mới được thêm vào đơn hàng từ kho
+      for (const item of currentOrder.orderDetails) {
+        const product = await Product.findById(item.productId);
+        if (!product) {
+            return res.status(404).json({ message: `Không tìm thấy sản phẩm với ID ${item.productId}` });
+        }
+        if (item.quantity > product.stock) {
+            return res.status(400).json({ message: `Số lượng sản phẩm trong kho không đủ (${product.stock}) để thêm vào đơn hàng.` });
+        }
+        product.stock -= item.quantity;
+        await product.save();
+    }
+
       // Xác định trạng thái và setup mới cho bàn dựa trên trạng thái của đơn hàng
       let newTableStatus;
       let newTableSetup;

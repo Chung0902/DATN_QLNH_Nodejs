@@ -2175,83 +2175,84 @@ module.exports = {
         .lean();
 
       // Tạo một mảng mới chứa thông tin về đơn hàng và các orderDetails cùng với tổng giá của từng orderDetails
-      const ordersWithTotalPrice = completedOrders.map((order) => {
-        // Tính tổng tiền của tất cả các orderDetail trong đơn hàng
-        let totalOrderPrice = 0;
-        const orderDetailsWithTotalPrice = order.orderDetails.map(
-          (orderDetails) => {
-            const totalOrderDetailPrice =
-              orderDetails.price * orderDetails.quantity;
+      const ordersWithTotalPrice = completedOrders
+        .map((order) => {
+          // Tính tổng tiền của tất cả các orderDetail trong đơn hàng
+          let totalOrderPrice = 0;
+          const orderDetailsWithTotalPrice = order.orderDetails.map(
+            (orderDetails) => {
+              const totalOrderDetailPrice =
+                orderDetails.price * orderDetails.quantity;
 
-            return {
-              productId: orderDetails.product._id,
-              productName: orderDetails.product.name,
-              productPrice: orderDetails.product.price,
-              quantity: orderDetails.quantity,
-              productDiscount: orderDetails.product.discount,
-              totalOrderDetailPrice: totalOrderDetailPrice,
-            };
+              return {
+                productId: orderDetails.product._id,
+                productName: orderDetails.product.name,
+                productPrice: orderDetails.product.price,
+                quantity: orderDetails.quantity,
+                productDiscount: orderDetails.product.discount,
+                totalOrderDetailPrice: totalOrderDetailPrice,
+              };
+            }
+          );
+
+          // Tính tổng thu nhập của cả các đơn hàng
+          const totalOrder = orderDetailsWithTotalPrice.reduce(
+            (total, order) => total + order.totalOrderDetailPrice,
+            0
+          );
+
+          // Tính tiền ship cho đơn hàng (chỉ tính một lần cho mỗi đơn hàng)
+          const shippingPrice = 11000;
+
+          // Áp dụng giảm giá cho tổng đơn hàng nếu có
+          let discountedTotalOrderPrice = totalOrder;
+          if (order.discount) {
+            discountedTotalOrderPrice = totalOrder * (1 - order.discount / 100);
           }
-        );
 
-        // Tính tổng thu nhập của cả các đơn hàng
-        const totalOrder = orderDetailsWithTotalPrice.reduce(
-          (total, order) => total + order.totalOrderDetailPrice,
-          0
-        );
+          const orderData = {
+            order: {
+              _id: order._id,
+              createdDate: order.createdDate,
+              paymentType: order.paymentType,
+              status: order.status,
+              discount: order.discount,
+              shippingAddress: order.shippingAddress,
+              customer: order.customer,
+              employee: order.employee,
+            },
+            orderDetails: orderDetailsWithTotalPrice,
+            totalamountdiscount: discountedTotalOrderPrice,
+            shippingPrice: shippingPrice,
+            totalOrderPrice: discountedTotalOrderPrice + shippingPrice,
+          };
 
-        // Tính tiền ship cho đơn hàng (chỉ tính một lần cho mỗi đơn hàng)
-        const shippingPrice = 11000;
+          return orderData;
+        })
+        .sort((a, b) => {
+          // Sắp xếp đơn hàng, đẩy trạng thái "WAITING" lên đầu danh sách
+          if (a.order.status === "WAITING") {
+            return -1;
+          } else if (b.order.status === "WAITING") {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
 
-        // Áp dụng giảm giá cho tổng đơn hàng nếu có
-        let discountedTotalOrderPrice = totalOrder;
-        if (order.discount) {
-          discountedTotalOrderPrice = totalOrder * (1 - order.discount / 100);
-        }
+      // Tính tổng thu nhập từ tất cả các đơn hàng
+      const totalIncome = ordersWithTotalPrice.reduce(
+        (total, order) => total + order.totalOrderPrice,
+        0
+      );
 
-        const orderData = {
-          order: {
-            _id: order._id,
-            createdDate: order.createdDate,
-            paymentType: order.paymentType,
-            status: order.status,
-            discount: order.discount,
-            shippingAddress: order.shippingAddress,
-            customer: order.customer,
-            employee: order.employee,
-          },
-          orderDetails: orderDetailsWithTotalPrice,
-          totalamountdiscount: discountedTotalOrderPrice,
-          shippingPrice: shippingPrice,
-          totalOrderPrice: discountedTotalOrderPrice + shippingPrice,
-        };
-    
-        return orderData;
-      })
-      .sort((a, b) => {
-        // Sắp xếp đơn hàng, đẩy trạng thái "WAITING" lên đầu danh sách
-        if (a.order.status === "WAITING") {
-          return -1;
-        } else if (b.order.status === "WAITING") {
-          return 1;
-        } else {
-          return 0;
-        }
+      // Trả về kết quả dưới dạng JSON
+      return res.send({
+        code: 200,
+        totalResult: ordersWithTotalPrice.length,
+        totalIncome: totalIncome,
+        payload: ordersWithTotalPrice,
       });
-    
-    // Tính tổng thu nhập từ tất cả các đơn hàng
-    const totalIncome = ordersWithTotalPrice.reduce(
-      (total, order) => total + order.totalOrderPrice,
-      0
-    );
-    
-    // Trả về kết quả dưới dạng JSON
-    return res.send({
-      code: 200,
-      totalResult: ordersWithTotalPrice.length,
-      totalIncome: totalIncome,
-      payload: ordersWithTotalPrice,
-    });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err });
     }
@@ -2335,33 +2336,37 @@ module.exports = {
           shippingPrice: shippingPrice,
           totalOrderPrice: discountedTotalOrderPrice + shippingPrice,
         };
-    
+
         return orderData;
-      })
-      .sort((a, b) => {
-        // Sắp xếp đơn hàng, đẩy trạng thái "WAITING" lên đầu danh sách
-        if (a.order.status === "WAITING") {
-          return -1;
-        } else if (b.order.status === "WAITING") {
-          return 1;
-        } else {
-          return 0;
-        }
       });
-    
-    // Tính tổng thu nhập từ tất cả các đơn hàng
-    const totalIncome = ordersWithTotalPrice.reduce(
-      (total, order) => total + order.totalOrderPrice,
-      0
-    );
-    
-    // Trả về kết quả dưới dạng JSON
-    return res.send({
-      code: 200,
-      totalResult: ordersWithTotalPrice.length,
-      totalIncome: totalIncome,
-      payload: ordersWithTotalPrice,
-    });
+      // Sắp xếp danh sách đơn hàng theo ưu tiên và ngày tạo mới nhất
+      const sortedOrders = ordersWithTotalPrice.sort((a, b) => {
+        // Ưu tiên WAITING trước DELIVERING
+        if (a.order.status === "WAITING" && b.order.status !== "WAITING")
+          return -1;
+        if (a.order.status !== "WAITING" && b.order.status === "WAITING")
+          return 1;
+        if (a.order.status === "DELIVERING" && b.order.status !== "DELIVERING")
+          return -1;
+        if (a.order.status !== "DELIVERING" && b.order.status === "DELIVERING")
+          return 1;
+        // Sắp xếp theo ngày tạo mới nhất
+        return new Date(b.order.createdDate) - new Date(a.order.createdDate);
+      });
+
+      // Tính tổng thu nhập từ tất cả các đơn hàng
+      const totalIncome = ordersWithTotalPrice.reduce(
+        (total, order) => total + order.totalOrderPrice,
+        0
+      );
+
+      // Trả về kết quả dưới dạng JSON
+      return res.send({
+        code: 200,
+        totalResult: ordersWithTotalPrice.length,
+        totalIncome: totalIncome,
+        payload: ordersWithTotalPrice,
+      });
     } catch (err) {
       return res.status(500).json({ code: 500, error: err.message }); // Đổi từ err sang err.message
     }
