@@ -19,6 +19,8 @@ const ordersRouter = require('./order/router');
 const productsRouter = require('./product/router');
 const cartRouter = require('./cart/router');
 const tablesRouter = require('./table/router');
+const reviewsRouter = require('./review/router');
+
 
 
 router.use('/cart', passport.authenticate('jwtUser', { session: false }), cartRouter);
@@ -31,5 +33,7 @@ router.use('/customers', customersRouter);
 router.use('/products', productsRouter);
 router.use('/tables', tablesRouter);
 router.use('/orders', passport.authenticate('jwtUser', { session: false }),ordersRouter);
+
+router.use('/reviews', reviewsRouter);
 
 module.exports = router;

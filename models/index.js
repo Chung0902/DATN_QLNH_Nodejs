@@ -7,6 +7,7 @@ const Product = require('./Product');
 const Supplier = require('./Supplier');
 const Cart = require('./Cart');
 const Table = require('./Table');
+const Review = require('./Review');
 
 module.exports = {
   Category,
@@ -18,4 +19,5 @@ module.exports = {
   Supplier,
   Cart,
   Table,
+  Review,
 };

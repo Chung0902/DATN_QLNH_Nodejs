@@ -18,6 +18,7 @@ const ordersRouter = require('./order/router');
 const productsRouter = require('./product/router');
 const suppliersRouter = require('./supplier/router');
 const tablesRouter = require('./table/router');
+const reviewsRouter = require('./review/router');
 
 
 router.use('/employees', employeesRouter);
@@ -27,5 +28,6 @@ router.use('/customers', passport.authenticate('jwtAdmin', { session: false }), 
 router.use('/products', productsRouter);
 router.use('/orders', passport.authenticate('jwtAdmin', { session: false }), ordersRouter);
 router.use('/tables', passport.authenticate('jwtAdmin', { session: false }), tablesRouter);
+router.use('/reviews', passport.authenticate('jwtAdmin', { session: false }), reviewsRouter);
 
 module.exports = router;
