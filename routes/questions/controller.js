@@ -2707,4 +2707,59 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+
+  pipeline: async (req, res, next) => {
+    try {
+      const productId = req.params.productId;
+      const defaultAvatarUrl = 'https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/08/hinh-chibi-cute-de-ve-17.jpg'; 
+      const pipeline = [
+        { $match: { _id: new mongoose.Types.ObjectId(productId) } },
+        {
+          $lookup: {
+            from: "reviews",
+            localField: "_id",
+            foreignField: "productId",
+            as: "reviews"
+          }
+        },
+        {
+          $unwind: "$reviews"
+        },
+        {
+          $lookup: {
+            from: "customers",
+            localField: "reviews.customerId",
+            foreignField: "_id",
+            as: "reviews.customer"
+          }
+        },
+        {
+          $unwind: "$reviews.customer"
+        },
+        {
+          $group: {
+            _id: "$_id",
+            productName: { $first: "$name" }, // Lấy tên sản phẩm
+            reviews: {
+              $push: {
+                customerName: { $concat: ["$reviews.customer.firstName", "$reviews.customer.lastName"] },
+                customerAvatar: { $ifNull: ["$reviews.customer.avatarUrl", defaultAvatarUrl] },
+                rating: "$reviews.rating",
+                comment: "$reviews.comment",
+                createdAt: "$reviews.createdAt" 
+              }
+            }
+          }
+        }
+      ];
+  
+      const product = await Product.aggregate(pipeline);
+  
+      // Trả về kết quả dưới dạng JSON
+      return res.send({ code: 200, payload: product[0] || null });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err });
+    }
+  },
+
 };
