@@ -2711,7 +2711,7 @@ module.exports = {
   pipeline: async (req, res, next) => {
     try {
       const productId = req.params.productId;
-      const defaultAvatarUrl = 'https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/08/hinh-chibi-cute-de-ve-17.jpg'; 
+      const defaultAvatarUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeqG8b5R5jfp4Emf6_TVFUyqIywNhkiBoOTw&s'; 
       const pipeline = [
         { $match: { _id: new mongoose.Types.ObjectId(productId) } },
         {
