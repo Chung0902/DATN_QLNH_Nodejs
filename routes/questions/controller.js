@@ -2737,6 +2737,9 @@ module.exports = {
           $unwind: "$reviews.customer"
         },
         {
+          $sort: { "reviews.rating": -1 } // Sắp xếp theo số sao từ cao đến thấp
+        },
+        {
           $group: {
             _id: "$_id",
             productName: { $first: "$name" }, // Lấy tên sản phẩm
@@ -2746,7 +2749,7 @@ module.exports = {
                 customerAvatar: { $ifNull: ["$reviews.customer.avatarUrl", defaultAvatarUrl] },
                 rating: "$reviews.rating",
                 comment: "$reviews.comment",
-                createdAt: "$reviews.createdAt" 
+                createdAt: "$reviews.createdDate" 
               }
             }
           }
