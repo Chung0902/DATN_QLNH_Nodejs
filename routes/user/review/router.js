@@ -24,4 +24,5 @@ router.route('/:id')
   .patch(validateSchema(updateSchema), update)
   .delete(validateSchema(getDetailSchema), remove)
 
+
 module.exports = router;

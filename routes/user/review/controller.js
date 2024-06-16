@@ -83,4 +83,5 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+
 };

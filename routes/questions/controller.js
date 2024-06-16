@@ -2745,6 +2745,7 @@ module.exports = {
             productName: { $first: "$name" }, // Lấy tên sản phẩm
             reviews: {
               $push: {
+                reviewId: "$reviews._id",
                 customerName: { $concat: ["$reviews.customer.firstName", "$reviews.customer.lastName"] },
                 customerAvatar: { $ifNull: ["$reviews.customer.avatarUrl", defaultAvatarUrl] },
                 rating: "$reviews.rating",
