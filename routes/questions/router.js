@@ -72,6 +72,7 @@ const {
   listorders1,
 
   pipeline,
+  pipeline1,
 } = require('./controller');
 
 router.get('/1', question1);
@@ -139,4 +140,5 @@ router.get('/customerSearch', customerSearch);
 router.get('/listorders1', listorders1);
 
 router.get('/pipeline/:productId', pipeline);
+router.get('/pipeline1', pipeline1);
 module.exports = router;

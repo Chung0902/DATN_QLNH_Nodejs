@@ -10,6 +10,7 @@ const {
   Order,
   Employee,
   Table,
+  Review,
 } = require("../../models");
 
 module.exports = {
@@ -2765,5 +2766,46 @@ module.exports = {
       return res.status(500).json({ code: 500, error: err });
     }
   },
+
+  pipeline1 : async (req, res, next) => {
+    try {
+      const defaultAvatarUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSeqG8b5R5jfp4Emf6_TVFUyqIywNhkiBoOTw&s';
+      const pipeline = [
+        {
+          $match: { rating: 5 } // Lọc chỉ lấy các đánh giá 5 sao
+        },
+        {
+          $lookup: {
+            from: "customers",
+            localField: "customerId",
+            foreignField: "_id",
+            as: "customer"
+          }
+        },
+        {
+          $unwind: "$customer"
+        },
+        {
+          $project: {
+            _id: 0, // Không lấy _id của đánh giá
+            reviewId: "$_id",
+            customerName: { $concat: ["$customer.firstName", " ", "$customer.lastName"] },
+            customerAvatar: { $ifNull: ["$customer.avatarUrl", defaultAvatarUrl] },
+            rating: "$rating",
+            comment: "$comment",
+            createdAt: "$createdDate" 
+          }
+        }
+      ];
+  
+      const reviews = await Review.aggregate(pipeline).exec();
+  
+      // Trả về kết quả dưới dạng JSON
+      return res.send({ code: 200, payload: reviews });
+    } catch (err) {
+      return res.status(500).json({ code: 500, error: err.message });
+    }
+  },
+  
 
 };
