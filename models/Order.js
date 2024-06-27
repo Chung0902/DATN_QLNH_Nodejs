@@ -53,6 +53,7 @@ const orderSchema = new Schema(
       },
     },
 
+
     paymentType: {
       type: String,
       required: true,
@@ -86,6 +87,23 @@ const orderSchema = new Schema(
       default: false,
       required: true,
     },
+
+    reservationDate: {
+      type: Date,
+      // required: true,
+    },
+
+    reservationTime: {
+      type: String,
+      // required: true,
+      validate: {
+        validator: function (value) {
+          return /([01]\d|2[0-3]):([0-5]\d)/.test(value);
+        },
+        message: `Reservation time: {VALUE} is invalid!`,
+      },
+    },
+
   },
   {
     versionKey: false,
