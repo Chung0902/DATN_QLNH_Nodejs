@@ -2329,6 +2329,8 @@ module.exports = {
             customer: order.customer,
             employee: order.employee,
             table: order.tableId ? order.tableId.name : null, // Thêm thông tin về tên bàn
+            reservationDate: order.reservationDate || null, // Thêm thông tin về ngày đặt trước
+            reservationTime: order.reservationTime || null, // Thêm thông tin về giờ đặt trước
           },
           orderDetails: orderDetailsWithTotalPrice,
           totalProductQuantity: totalProductQuantity, // Thêm tổng số sản phẩm được mua
