@@ -2519,12 +2519,14 @@ module.exports = {
       // Lấy ngày hiện tại
       const currentDate = new Date();
 
-      // Tìm ngày đầu tiên của tuần (Chủ Nhật trong tuần)
+      // Tìm ngày đầu tiên của tuần (Thứ 2 trong tuần)
       const firstDayOfWeek = new Date(currentDate);
-      firstDayOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+      const dayOfWeek = currentDate.getDay();
+      firstDayOfWeek.setDate(currentDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1));
 
-      const startDate = firstDayOfWeek; // Ngày đầu tiên của tuần
+      const startDate = firstDayOfWeek; // Ngày đầu tiên của tuần (Thứ 2)
       const endDate = currentDate; // Ngày hiện tại
+
 
       // Điều kiện tìm kiếm cho các đơn hàng đã hoàn thành trong khoảng thời gian tuần
       const conditionFind = {
